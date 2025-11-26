@@ -58,8 +58,15 @@ SVG file 'output.svg' generated.
 > Type a command (HELP for list of commands): RENDER
 SVG file 'output.svg' generated.
 
-## Scalability & Roadmap 📈
+## Undo/Redo Example 📝
 
+```text
+> Type a command (HELP for list of commands): UNDO
+> Type a command (HELP for list of commands): RENDER
+SVG file 'output.svg' generated.
+```
+
+## Scalability & Roadmap 📈
 ### Performance Characteristics
 The engine is architected for high-frequency operations suitable for large-scale CAD drawings:
 * **Time Complexity:** Shape insertion and Undo/Redo operations are strictly **$O(1)$** (constant time), ensuring consistent performance whether the scene contains 10 shapes or 1,000,000.
