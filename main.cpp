@@ -5,12 +5,14 @@
 #include "Arena.h"
 #include "Circle.h"
 #include "Rectangle.h"
+#include "Triangle.h"
 using namespace std;
 
 void printHelp() {
     cout << "Available commands: \n";
     cout << "ADD CIRCLE x y radius - Adds a circle at (x, y) with the specified radius.\n";
     cout << "ADD RECT x y width height - Adds a rectangle at (x, y) with the specified width and height.\n";
+    cout << "ADD TRIANGLE x1 y1 x2 y2 x3 y3 - Adds a traingle with the specified vertices.\n";
     cout << "RENDER - Generated an SVG file with the current shapes in active memory.\n";
     cout << "UNDO - Removes the last added shape from active memory.\n";
     cout << "REDO - Re-adds the last undone shape to the active memory.\n";
@@ -19,7 +21,9 @@ void printHelp() {
 }
 
 int main(){
+    cout << "Welcome to the PolyGeoEngine! v1.0\n";
     Arena arena(1024 * 1024 * 10); // 10 MB block size
+    cout << "Initialized memory area with 10 MB.\n";
     vector<Shape*> shapes;
     vector<Shape*> history;
     while (true) {
@@ -48,6 +52,16 @@ int main(){
                     continue;
                 }
                 shapes.push_back(new (mem) Rectangle(x, y, w, h));
+            }
+            else if (type == "TRIANGLE"){
+                int x2, y2, x3, y3;
+                cin >> x >> y >> x2 >> y2 >> x3 >> y3;
+                void* mem = arena.alloc(sizeof(Triangle));
+                if (!mem) {
+                    cout << "Memory allocation failed. Cannot add more shapes.\n";
+                    continue;
+                }
+                shapes.push_back(new (mem) Triangle(x, y, x2, y2, x3, y3));
             }
             else {
                 cout << "Unknown shape type. " << endl;
