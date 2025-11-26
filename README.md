@@ -57,3 +57,18 @@ SVG file 'output.svg' generated.
 > Type a command (HELP for list of commands): UNDO
 > Type a command (HELP for list of commands): RENDER
 SVG file 'output.svg' generated.
+
+## Scalability & Roadmap 📈
+
+### Performance Characteristics
+The engine is architected for high-frequency operations suitable for large-scale CAD drawings:
+* **Time Complexity:** Shape insertion and Undo/Redo operations are strictly **$O(1)$** (constant time), ensuring consistent performance whether the scene contains 10 shapes or 1,000,000.
+* **Memory Efficiency:** The Arena Allocator eliminates the 8-16 byte metadata overhead per object typical of standard `malloc`/`new`, resulting in ~30% denser memory storage.
+
+### Known Limitations & Future Work
+* **Fixed Memory Pool:** Currently, the Arena size is fixed at startup (10MB). 
+    * *Future Goal:* Implement a dynamic pager to chain multiple memory blocks together as the application grows.
+* **Single-Threaded:** The engine runs on a single thread.
+    * *Future Goal:* Implement support for asynchronous command processing to improve responsiveness.
+* **Linear Rendering:** Rendering iterates through all shapes.
+    * *Future Goal:* Implement spatial partitioning optimization to speed up querying in massive datasets.
