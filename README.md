@@ -16,7 +16,7 @@ The engine follows a strict "Command → Allocate → Construct" pipeline to ens
 
 1.  **Command Parser:** Reads raw text input and validates syntax.
 2.  **Arena Allocation:** Requests a block from the pre-allocated `Arena`. If successful, returns a raw pointer (`void*`).
-3.  **Object Construction:** Uses **Placement New** to construct the specific shape (`Circle`/`Rect`) directly into the allocated memory slot.
+3.  **Object Construction:** Uses **Placement New** to construct the specific shape (`Circle`/`Rectangle`/`Triangle`) directly into the allocated memory slot.
 4.  **Vector Storage:** Stores the pointer in the `active_shapes` vector for rendering or the `history_stack` for undo operations.
 
 ## How to Build & Run 🛠️
