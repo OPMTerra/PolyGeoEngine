@@ -8,7 +8,7 @@ PolyGeo is a high-performance, command-line based geometry engine designed to de
 
 * **Custom Arena Allocator:** Replaces standard `new`/`delete` with a pre-allocated contiguous memory block. This eliminates system call overhead (making allocation significantly faster) and solves external fragmentation by packing objects linearly.
 * **Zero-Overhead Undo/Redo:** Implements a rigorous linear history stack. Because state changes involve swapping pointers rather than deep-copying objects, the Undo/Redo operations are $O(1)$ (instantaneous) regardless of shape complexity.
-* **Polymorphic Architecture:** Uses a virtual command interface to treat all geometric primitives (`Circle`, `Rect`) uniformly, allowing for easy extensibility.
+* **Polymorphic Architecture:** Uses a virtual command interface to treat all geometric primitives (`Circle`, `Rectangle`, `Triangle`) uniformly, allowing for easy extensibility.
 
 ## Architecture 🏗️
 
