@@ -3,9 +3,7 @@
 #include <fstream>
 #include <memory>
 #include "Arena.h"
-#include "Circle.h"
-#include "Rectangle.h"
-#include "Triangle.h"
+#include "ShapeFactory.h"
 using namespace std;
 
 void printHelp() {
@@ -33,40 +31,14 @@ int main(){
         if (command == "QUIT") break;
         else if (command == "ADD") {
             string type;
-            int x, y, r, w, h;
             cin >> type;
-            if (type == "CIRCLE") {
-                cin >> x >> y >> r;
-                void* mem = arena.alloc(sizeof(Circle));
-                if (!mem) {
-                    cout << "Memory allocation failed. Cannot add more shapes.\n";
-                    continue;
-                }
-                shapes.push_back(new (mem) Circle(x, y, r));
+
+            Shape* s = ShapeFactory::CreateShape(type, cin, arena);
+            if (s != nullptr) {
+                shapes.push_back(s);
+                history.clear();
+                cout << "Shape added successfully.\n";
             }
-            else if (type == "RECT") {
-                cin >> x >> y >> w >> h;
-                void* mem = arena.alloc(sizeof(Rectangle));
-                if (!mem) {
-                    cout << "Memory allocation failed. Cannot add more shapes.\n";
-                    continue;
-                }
-                shapes.push_back(new (mem) Rectangle(x, y, w, h));
-            }
-            else if (type == "TRIANGLE"){
-                int x2, y2, x3, y3;
-                cin >> x >> y >> x2 >> y2 >> x3 >> y3;
-                void* mem = arena.alloc(sizeof(Triangle));
-                if (!mem) {
-                    cout << "Memory allocation failed. Cannot add more shapes.\n";
-                    continue;
-                }
-                shapes.push_back(new (mem) Triangle(x, y, x2, y2, x3, y3));
-            }
-            else {
-                cout << "Unknown shape type. " << endl;
-            }
-            history.clear();
         }
         else if (command == "RENDER") {
             ofstream svgfile("output.svg");
@@ -98,6 +70,10 @@ int main(){
         else {
             cout << "Invalid command. Type HELP for list of commands." << endl;
         }
+    }
+    cout << "Cleaning up shapes..." << endl;
+    for (Shape* s : shapes) {
+        s->~Shape();
     }
     return 0;
 }

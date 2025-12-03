@@ -20,6 +20,7 @@ class Arena {
 
     ~Arena() {
         delete[] memoryStart;
+        cout << "Initialized memory area with 10 MB (freed)." << endl;
     }
 
     void* alloc(size_t bytes) {
