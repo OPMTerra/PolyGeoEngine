@@ -19,7 +19,7 @@ void printHelp() {
 }
 
 int main(){
-    cout << "Welcome to the PolyGeoEngine! v1.0\n";
+    cout << "Welcome to the PolyGeoEngine! v1.1\n";
     Arena arena(1024 * 1024 * 10); // 10 MB block size
     cout << "Initialized memory area with 10 MB.\n";
     vector<Shape*> shapes;
