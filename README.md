@@ -1,28 +1,35 @@
 # PolyGeo Engine
 
-**A Headless 2D CAD Kernel built in C++**
+![Status](https://img.shields.io/badge/Status-Active-success)
+![Language](https://img.shields.io/badge/Language-C++17-blue)
+![Architecture](https://img.shields.io/badge/Architecture-Headless_CAD-orange)
 
-PolyGeo is a high-performance, command-line based geometry engine designed to demonstrate systems engineering concepts including custom memory management, hardware-aware allocation, and runtime polymorphism. It serves as a lightweight "backend" for 2D Computer Aided Design (CAD) applications.
+**A High-Performance 2D CAD Kernel with Custom Memory Management**
+
+PolyGeo is a command-line based geometry engine designed to demonstrate advanced systems engineering concepts. It implements a custom memory model to bypass standard heap allocation overhead while maintaining strict resource safety through modern C++ RAII patterns.
 
 ## Technical Highlights 🚀
 
 ### 1. Hardware-Aligned Arena Allocator
-Unlike standard `new`/`malloc`, PolyGeo uses a custom **Arena Allocator** that manages a pre-allocated contiguous block of memory. 
-* **Performance:** Eliminates system call overhead during runtime.
-* **Hardware Safety:** Implements strict **Memory Alignment** logic. The allocator calculates padding bytes to ensure every object (Triangle, Circle, etc.) starts at a memory address compatible with the CPU's alignment requirements (using `std::max_align_t`). This prevents hardware faults on strict architectures and optimizes CPU cache fetch cycles.
+PolyGeo replaces standard `new`/`malloc` with a custom **Arena Allocator** that manages a pre-allocated contiguous block of memory (10MB).
+* **Performance:** Eliminates system call overhead during runtime object creation.
+* **Hardware Safety:** Implements strict **Memory Alignment** logic. The allocator calculates padding bytes to ensure every object aligns with `std::max_align_t`, preventing hardware faults on strict architectures and optimizing CPU cache line utilization.
 
-### 2. Factory Design Pattern (OOD)
-The engine utilizes the **Factory Pattern** to decouple the *user interface* (main loop) from the *object creation logic*. 
-* **Separation of Concerns:** `ShapeFactory` handles the complex logic of parsing inputs, requesting memory from the Arena, and constructing objects.
-* **Extensibility:** New shapes can be added to the Factory without modifying the core application loop, adhering to the **Open/Closed Principle**.
+### 2. Automated RAII with Custom Deleters
+The engine solves the complexity of custom allocation using `std::unique_ptr` and **Custom Deleters**.
+* **The Problem:** Standard smart pointers call `delete`, which causes undefined behavior on Arena-managed memory.
+* **The Solution:** A specialized `ShapeDeleter` instructs the smart pointer to strictly invoke the destructor `~Shape()` (cleaning up internal resources) while skipping memory deallocation (leaving that to the Arena).
+* **Result:** This bridges the gap between raw memory performance and modern safety, preventing "Zombie Objects" and resource leaks automatically.
 
-### 3. Manual Lifecycle Management (RAII & Placement New)
-The engine constructs objects directly into the Arena using **Placement New**.
-* **Design Choice:** Since the Arena owns the raw memory, standard `delete` cannot be used on shape pointers.
-* **Implementation:** The engine implements a rigorous manual cleanup phase where `~Shape()` destructors are explicitly invoked for every active object before the Arena releases the memory block. This ensures resource correctness without the overhead of reference counting.
+### 3. Factory Design Pattern
+The engine utilizes the **Factory Pattern** to decouple the *user interface* (main loop) from the *object creation logic*.
+* **Separation of Concerns:** `ShapeFactory` encapsulates input parsing, memory alignment requests, and object construction.
+* **Extensibility:** Adheres to the **Open/Closed Principle**—new shapes can be added to the Factory without modifying the core application loop.
 
-### 4. Zero-Overhead Undo/Redo
-Implements a linear history stack. Because state changes involve swapping pointers rather than deep-copying objects, the Undo/Redo operations are strictly **$O(1)$** (constant time).
+### 4. Zero-Overhead Undo/Redo via Ownership Transfer
+Implements a linear history stack using pointer ownership transfer.
+* **Efficiency:** Undo/Redo operations involve `std::move`-ing smart pointers between vectors. This guarantees **$O(1)$** (constant time) performance regardless of shape complexity.
+* **Safety:** If the history stack is cleared or the program exits, the smart pointers automatically trigger the custom deleters, ensuring perfectly clean history management.
 
 ## Architecture 🏗️
 
@@ -30,31 +37,27 @@ The engine follows a strict "Command → Factory → Arena" pipeline:
 
 1.  **Command Parser:** Reads raw text input in `main.cpp`.
 2.  **ShapeFactory:** Validates input and calculates size requirements.
-3.  **Arena Allocation:** Calculates the necessary **Padding** for alignment and returns a raw pointer.
-4.  **Placement New:** Constructs the shape implementation (`Circle`/`Rect`) in the aligned slot.
-5.  **Cleanup:** On exit, the engine iterates through active shapes to manually invoke destructors, ensuring a clean shutdown before the Arena is freed.
+3.  **Arena Allocation:** Calculates **Padding** for alignment and creates the object via **Placement New**.
+4.  **Smart Pointer Wrap:** The raw pointer is immediately wrapped in a `std::unique_ptr` with `ShapeDeleter`.
+5.  **Lifecycle Management:** Objects remain alive as long as they are owned by the `shapes` or `history` vectors. Upon removal or exit, destructors are invoked automatically.
 
 ## How to Build & Run 🛠️
 
 ### Prerequisites
-* A C++ Compiler (GCC/G++ recommended)
-* Visual Studio Code with the [C/C++ Extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cpptools) (Recommended)
+* A C++ Compiler (GCC/G++ recommended, C++14 or higher)
 
-### Option 1: Visual Studio Code (Quick Start)
+### Option 1: Visual Studio Code (Recommended)
 1.  Open the `PolyGeoEngine` folder in VS Code.
 2.  Open `main.cpp`.
-3.  Click the **Run / Play** button (▶️) in the top right corner (or press `F5`).
-4.  Select **g++** from the compiler list if prompted.
-5.  The engine will start in the internal terminal below.
+3.  Press `F5` or click the **Run** button.
 
 ### Option 2: Terminal / Command Line
-1.  Open your terminal/command prompt.
-2.  Navigate to the project folder.
-3.  Run the following command to compile:
+1.  Navigate to the project folder.
+2.  Compile the engine:
     ```bash
     g++ main.cpp -o polygeo
     ```
-4.  Run the executable:
+3.  Run the executable:
     * **Windows:** `.\polygeo.exe`
     * **Mac/Linux:** `./polygeo`
 
@@ -70,20 +73,14 @@ Shape added successfully.
 > Type a command: ADD RECT 200 200 40 60
 Shape added successfully.
 
+> Type a command: UNDO
+# Shape is moved to history stack (O(1))
+
 > Type a command: RENDER
 SVG file 'output.svg' generated.
 
 > Type a command: QUIT
-Cleaning up shapes...
-Shape destroyed
-Shape destroyed
-
-## Undo/Redo Example 📝
-
-```text
-> Type a command (HELP for list of commands): UNDO
-> Type a command (HELP for list of commands): RENDER
-SVG file 'output.svg' generated.
+# Cleanup handled automatically by RAII.
 ```
 
 ## Scalability & Roadmap 📈
@@ -100,7 +97,4 @@ The engine is architected for high-frequency operations suitable for large-scale
     * *Future Goal:* Implement support for asynchronous command processing to improve responsiveness.
 * **Linear Rendering:** Rendering iterates through all shapes.
     * *Future Goal:* Implement spatial partitioning optimization to speed up querying in massive datasets.
-* **Edit Complexity:** The current Undo/Redo system handles creation/deletion history efficiently.
-    * *Future Goal:* Implement the Command Pattern to support complex state changes (e.g., "Move", "Resize") and granular undo steps.
-* **Lifecycle Management (RAII):** Currently, the engine uses a manual destruction loop to ensure correctness.
-    * *Future Goal:* Refactor to std::unique_ptr with custom deleters to fully automate resource cleanup via RAII (Resource Acquisition Is Initialization).
+
