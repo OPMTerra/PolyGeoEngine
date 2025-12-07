@@ -1,5 +1,6 @@
 *.exe
 *.obj
 *.o
+*.txt
 .vscode/
 output.svg
