@@ -9,9 +9,19 @@
 
 using namespace std;
 
+struct ShapeDeleter {
+    void operator()(Shape* shape) const {
+        if (shape) {
+            shape->~Shape();
+        }
+    }
+};
+
+using ShapePtr = unique_ptr<Shape, ShapeDeleter>;
+
 class ShapeFactory {
     public:
-    static Shape* CreateShape(const string& type, istream& input, Arena& arena) {
+    static ShapePtr CreateShape(const string& type, istream& input, Arena& arena) {
         void* mem = nullptr;
         Shape* newShape = nullptr;
         if (type == "CIRCLE") {
@@ -41,6 +51,6 @@ class ShapeFactory {
         if (mem == nullptr && (type == "CIRCLE" || type == "RECT" || type == "TRIANGLE")) {
             cout << "ERROR: Arena Memory full!" << endl;
         }
-        return newShape;
+        return ShapePtr(newShape);
     }
 };

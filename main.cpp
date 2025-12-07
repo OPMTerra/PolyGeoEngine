@@ -22,8 +22,8 @@ int main(){
     cout << "Welcome to the PolyGeoEngine! v1.1\n";
     Arena arena(1024 * 1024 * 10); // 10 MB block size
     cout << "Initialized memory area with 10 MB.\n";
-    vector<Shape*> shapes;
-    vector<Shape*> history;
+    vector<ShapePtr> shapes;
+    vector<ShapePtr> history;
     while (true) {
         cout << "> Type a command (HELP for list of commands): ";
         string command;
@@ -33,13 +33,9 @@ int main(){
             string type;
             cin >> type;
 
-            Shape* s = ShapeFactory::CreateShape(type, cin, arena);
+            ShapePtr s = ShapeFactory::CreateShape(type, cin, arena);
             if (s != nullptr) {
-                shapes.push_back(s);
-
-                for (Shape* orphan : history) {
-                    orphan->~Shape();
-                }
+                shapes.push_back(move(s));
 
                 history.clear();
                 cout << "Shape added successfully.\n";
@@ -57,14 +53,14 @@ int main(){
         }
         else if (command == "UNDO") {
             if (!shapes.empty()) {
-                history.push_back(shapes.back());
+                history.push_back(move(shapes.back()));
                 shapes.pop_back();
             }
             else cout << "No shapes to undo. \n";
         }
         else if (command == "REDO") {
             if (!history.empty()) {
-                shapes.push_back(history.back());
+                shapes.push_back(move(history.back()));
                 history.pop_back();
             }
             else cout << "No shapes to redo. \n";
@@ -75,10 +71,6 @@ int main(){
         else {
             cout << "Invalid command. Type HELP for list of commands." << endl;
         }
-    }
-    cout << "Cleaning up shapes..." << endl;
-    for (Shape* s : shapes) {
-        s->~Shape();
     }
     return 0;
 }
