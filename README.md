@@ -88,7 +88,7 @@ SVG file 'output.svg' generated.
 The engine includes a Python-based stress testing suite to verify memory safety and load handling.
 
 ### How to Run the Stress Test
-The `tests/gen_tests.py` script generates a load file with 500,000+ commands to intentionally overflow the 10MB Arena and verify graceful error handling.
+The `tests/gen_tests.py` script generates a load file with 400,000 commands to intentionally overflow the 10MB Arena and verify graceful error handling.
 
 1.  **Generate the Load File:**
     ```bash
