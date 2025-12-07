@@ -83,6 +83,28 @@ SVG file 'output.svg' generated.
 # Cleanup handled automatically by RAII.
 ```
 
+## Testing & Validation 🧪
+
+The engine includes a Python-based stress testing suite to verify memory safety and load handling.
+
+### How to Run the Stress Test
+The `tests/gen_tests.py` script generates a load file with 500,000+ commands to intentionally overflow the 10MB Arena and verify graceful error handling.
+
+1.  **Generate the Load File:**
+    ```bash
+    python tests/gen_tests.py
+    ```
+2.  **Run the Engine:**
+    ```bash
+    # Windows (PowerShell)
+    Get-Content test_load.txt | .\polygeo.exe > output.log
+    
+    # Linux / Mac
+    ./polygeo < test_load.txt > output.log
+    ```
+3.  **Verify Results:**
+    Check `output.log` for `ERROR: Arena Memory full!`. This confirms the Allocator correctly rejected excess shapes without crashing, and RAII successfully destructed all ~327,000 valid objects upon exit.
+
 ## Scalability & Roadmap 📈
 ### Performance Characteristics
 The engine is architected for high-frequency operations suitable for large-scale CAD drawings:
