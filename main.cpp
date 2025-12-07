@@ -36,6 +36,11 @@ int main(){
             Shape* s = ShapeFactory::CreateShape(type, cin, arena);
             if (s != nullptr) {
                 shapes.push_back(s);
+
+                for (Shape* orphan : history) {
+                    orphan->~Shape();
+                }
+
                 history.clear();
                 cout << "Shape added successfully.\n";
             }
